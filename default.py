@@ -12,13 +12,41 @@ handle = int(sys.argv[1])
 params = dict(urlparse.parse_qsl(sys.argv[2].lstrip('?')))
 
 def index():
-    # Live part
-    response = urllib2.urlopen("http://www.cpbltv.com/vod/player.html?&type=live&width=620&height=348&id=1&0.9397849941728333")
-    # Replay part
+    # Live
+    url = plugin_url + "?act=live"
+    li = xbmcgui.ListItem("直播")
+    xbmcplugin.addDirectoryItem(handle, url, li, True)
+    
+    # Replay
+    
+    url = plugin_url + "?act=replay"
+    li = xbmcgui.ListItem("重播")
+    xbmcplugin.addDirectoryItem(handle, url, li, True)
+
+    xbmcplugin.endOfDirectory(handle)
+
+def live():
+    response = urllib2.urlopen("http://cpbltv.com")
+
+    m = re.findall(r"live_channel_1", response.read())
+    if m:
+        url = plugin_url + "?act=livePlay&id=1"
+        li = xbmcgui.ListItem("live_channel_1")
+        xbmcplugin.addDirectoryItem(handle, url, li, True)
+
+    m = re.findall(r"live_channel_2", response.read())
+    if m:
+        url = plugin_url + "?act=livePlay&id=2"
+        li = xbmcgui.ListItem("live_channel_2")
+        xbmcplugin.addDirectoryItem(handle, url, li, True)
+    
+    xbmcplugin.endOfDirectory(handle)
+
+def replay():
     response = urllib2.urlopen("http://cpbltv.com")
     channels = re.findall(r"top.location.href=\'([\w\.\/\:]+)\';\">[0-9]+&nbsp;([\x01-\xff]{6}\sVS\s[\x01-\xff]{6})\s([\d]{4}\/[\d]{2}\/[\d]{2})", response.read())
     for channel in channels:
-        url = plugin_url + "?act=play&channel=" + str(channel[0])
+        url = plugin_url + "?act=replayPlay&channel=" + str(channel[0])
         combination = channel[1]
         date = channel[2]
 
@@ -31,8 +59,7 @@ def index():
     xbmcplugin.endOfDirectory(handle)
 
 
-def play():
-    '''
+def replayPlay():
     response = urllib2.urlopen(params['channel'])
     main_url = "http://www.cpbltv.com"
     m = re.findall(r"iframe src=\"([\/\w\.\?\&\=]+autoPlay=true)", response.read())
@@ -40,18 +67,24 @@ def play():
     response = urllib2.urlopen(url)
     url = re.findall(r"url\:\s\"([\/\w\d\-\.\:]+index.m3u8\?token1=[\w\-\d]+&token2=[\w\_\-\d]+&expire1=[\d]+&expire2=[\d]+)", response.read())
     url = str(url[0])
-    '''
-    url = "http://cpbl-hichannel.cdn.hinet.net/live/pool/cpbl-livestream03/hd-hds-pc/cpbl-livestream03.f4m?token1=yxHXK_HikK7dHXJAsaKY0g&token2=Ig6ZsE0RliE8j5BUAzZeuA&expire1=1399386499&expire2=1399393699"
-#    playlist = xbmc.PlayList( xbmc.PLAYLIST_VIDEO )
-#    playlist.clear()
-#    playlist.add(url)
-#    xbmc.Player().play(playlist)
-    player = f4mProxyHelper()
-    player.playF4mLink(url, "Test")
+    playlist = xbmc.PlayList( xbmc.PLAYLIST_VIDEO )
+    playlist.clear()
+    playlist.add(url)
+    xbmc.Player().play(playlist)
 
+def livePlay():
+    response = urllib2.urlopen("http://www.cpbltv.com/vod/player.html?&type=live&width=620&height=348&id="+params['id']+"&0.9397849941728333")
+    #url = "http://cpbl-hichannel.cdn.hinet.net/live/pool/cpbl-livestream03/hd-hds-pc/cpbl-livestream03.f4m?token1=lJ8EJPNtvlR5hh6kmuB1Hg&token2=tBVVO7VGJqzuDPHomlY3dA&expire1=1399396006&expire2=1399403206"    
+    m = re.findall(r"var play_url = '([\?\w\d\_\&\-\=]+)", response.read())
+    url = "http://cpbl-hichannel.cdn.hinet.net/live/pool/cpbl-livestream03/hd-hds-pc/cpbl-livestream03.f4m" + str(m[0])
+    player = f4mProxyHelper()
+    player.playF4mLink(url, "直播")
 
 
 {
     'index': index,
-    'play': play,
+    'replay': replay,
+    'live': live,
+    'replayPlay': replayPlay,
+    'livePlay': livePlay,
 }[params.get('act', 'index')]()
