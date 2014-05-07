@@ -19,7 +19,7 @@ def index():
     
     # Replay
     
-    url = plugin_url + "?act=replay"
+    url = plugin_url + "?act=replay&offset=1"
     li = xbmcgui.ListItem("重播")
     xbmcplugin.addDirectoryItem(handle, url, li, True)
 
@@ -43,8 +43,9 @@ def live():
     xbmcplugin.endOfDirectory(handle)
 
 def replay():
-    response = urllib2.urlopen("http://cpbltv.com")
-    channels = re.findall(r"top.location.href=\'([\w\.\/\:]+)\';\">[0-9]+&nbsp;([\x01-\xff]{6}\sVS\s[\x01-\xff]{6})\s([\d]{4}\/[\d]{2}\/[\d]{2})", response.read())
+    response = urllib2.urlopen("http://cpbltv.com/lists.php?&offset="+ params['offset'])
+    channels = re.findall(r"top.location.href=\'([\w\.\/\:\=\?]+)\';\">[0-9]+&nbsp;([\x01-\xff]{6}\sVS\s[\x01-\xff]{6})\s([\d]{4}\/[\d]{2}\/[\d]{2})", response.read())
+    #channels = re.findall(r"<a href=\"([\w\.\/\:\=\?]+)\">\d+&nbsp;([\x01-\xff]{6}\sVS\s[\x01-\xff]{6})\s([\d]{4}\/[\d]{2}\/[\d]{2})", response.read())
     for channel in channels:
         url = plugin_url + "?act=replayPlay&channel=" + str(channel[0])
         combination = channel[1]
@@ -55,6 +56,11 @@ def replay():
         #li.setProperty('IsPlayable', 'true')
 
         xbmcplugin.addDirectoryItem(handle, url, li, True)
+    
+    offset = str(int(params['offset'])+1)
+    li = xbmcgui.ListItem("more...page(" + offset + ")")
+    url = plugin_url + "?act=replay&offset=" + offset
+    xbmcplugin.addDirectoryItem(handle, url, li, True)
 
     xbmcplugin.endOfDirectory(handle)
 
