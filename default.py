@@ -47,11 +47,10 @@ def replay():
     channels = re.findall(r"top.location.href=\'([\w\.\/\:\=\?]+)\';\">[0-9]+&nbsp;([\x01-\xff]{6}\sVS\s[\x01-\xff]{6})\s([\d]{4}\/[\d]{2}\/[\d]{2})", response.read())
     #channels = re.findall(r"<a href=\"([\w\.\/\:\=\?]+)\">\d+&nbsp;([\x01-\xff]{6}\sVS\s[\x01-\xff]{6})\s([\d]{4}\/[\d]{2}\/[\d]{2})", response.read())
     for channel in channels:
-        url = plugin_url + "?act=replayPlay&channel=" + str(channel[0])
-        combination = channel[1]
-        date = channel[2]
+        gameInfo = " ".join(channel[1:])
+        url = plugin_url + "?act=replayPlay&channel=" + channel[0] + "&gameInfo=" + gameInfo
 
-        li = xbmcgui.ListItem(combination + " " + date)
+        li = xbmcgui.ListItem(gameInfo)
         li.setProperty('mimetype', 'video/x-msvideo')
         #li.setProperty('IsPlayable', 'true')
 
@@ -74,8 +73,9 @@ def replayPlay():
     url = re.findall(r"url\:\s\"([\/\w\d\-\.\:]+index.m3u8\?token1=[\w\-\d]+&token2=[\w\_\-\d]+&expire1=[\d]+&expire2=[\d]+)", response.read())
     url = str(url[0])
     playlist = xbmc.PlayList( xbmc.PLAYLIST_VIDEO )
+    li = xbmcgui.ListItem(params['gameInfo'])
     playlist.clear()
-    playlist.add(url)
+    playlist.add(url=url, listitem=li)
     xbmc.Player().play(playlist)
 
 def livePlay():
