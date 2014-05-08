@@ -6,7 +6,6 @@ import xbmc, xbmcgui, xbmcplugin
 import sys
 import urlparse
 from F4mProxy import f4mProxyHelper
-#from bs4 import BeautifulSoup
 
 plugin_url = sys.argv[0]
 handle = int(sys.argv[1])
@@ -17,11 +16,15 @@ def index():
     url = plugin_url + "?act=live"
     li = xbmcgui.ListItem("直播")
     xbmcplugin.addDirectoryItem(handle, url, li, True)
-    
+
     # Replay
-    
     url = plugin_url + "?act=replay&offset=1"
     li = xbmcgui.ListItem("重播")
+    xbmcplugin.addDirectoryItem(handle, url, li, True)
+
+    # Highlight
+    url = plugin_url + "?act=highlight&offset=1"
+    li = xbmcgui.ListItem("精彩片段")
     xbmcplugin.addDirectoryItem(handle, url, li, True)
 
     xbmcplugin.endOfDirectory(handle)
@@ -34,7 +37,7 @@ def live():
         dialog = xbmcgui.Dialog()
         dialog.ok("提醒","現在非直播時段")
         return
- 
+
     m = re.findall(r"live_channel_(\d)", response)
     for i in m:
         url = plugin_url + "?act=livePlay&id=" + i
@@ -44,19 +47,21 @@ def live():
     xbmcplugin.endOfDirectory(handle)
 
 def replay():
-    response = urllib2.urlopen("http://cpbltv.com/lists.php?&offset="+ params['offset'])
-    channels = re.findall(r"top.location.href=\'([\w\.\/\:\=\?]+)\';\">[0-9]+&nbsp;([\x01-\xff]{6}\sVS\s[\x01-\xff]{6})\s([\d]{4}\/[\d]{2}\/[\d]{2})", response.read())
+    response = urllib2.urlopen("http://cpbltv.com/lists.php?&offset=" + params['offset'])
+    if response:
+        response = response.read()
+    else:
+        return
+
+    channels = re.findall(r"top.location.href=\'([\w\.\/\:\=\?]+)\';\">[0-9]+&nbsp;([\x01-\xff]{6}\sVS\s[\x01-\xff]{6})\s([\d]{4}\/[\d]{2}\/[\d]{2})", response)
     #channels = re.findall(r"<a href=\"([\w\.\/\:\=\?]+)\">\d+&nbsp;([\x01-\xff]{6}\sVS\s[\x01-\xff]{6})\s([\d]{4}\/[\d]{2}\/[\d]{2})", response.read())
     for channel in channels:
         gameInfo = " ".join(channel[1:])
         url = plugin_url + "?act=replayPlay&channel=" + channel[0] + "&gameInfo=" + gameInfo
-
         li = xbmcgui.ListItem(gameInfo)
         li.setProperty('mimetype', 'video/x-msvideo')
-        #li.setProperty('IsPlayable', 'true')
-
         xbmcplugin.addDirectoryItem(handle, url, li, True)
-    
+
     offset = str(int(params['offset'])+1)
     li = xbmcgui.ListItem("more...page(" + offset + ")")
     url = plugin_url + "?act=replay&offset=" + offset
@@ -64,11 +69,36 @@ def replay():
 
     xbmcplugin.endOfDirectory(handle)
 
+def highlight():
+    response = urllib2.urlopen("http://www.cpbltv.com/highlight.php?&offset=" + params['offset'])
+    if response:
+        response = response.read()
+    else:
+        return
+
+    channels = re.findall(r"href=\'(.*?)\';\">\d+\&nbsp;(.*?)<br>", response)
+    for channel in channels:
+        url = plugin_url + "?act=highlightPlay&channel=" + channel[0] + "&info=" + channel[1]
+        li = xbmcgui.ListItem(channel[1])
+        li.setProperty('mimetype', 'video/x-msvideo')
+        xbmcplugin.addDirectoryItem(handle, url, li, True)
+
+    offset = str(int(params['offset'])+1)
+    li = xbmcgui.ListItem("more...page(" + offset + ")")
+    url = plugin_url + "?act=highlight&offset=" + offset
+    xbmcplugin.addDirectoryItem(handle, url, li, True)
+
+    xbmcplugin.endOfDirectory(handle)
+
 
 def replayPlay():
     response = urllib2.urlopen(params['channel'])
+    if response:
+        response = response.read()
+    else:
+        return
     main_url = "http://www.cpbltv.com"
-    m = re.findall(r"iframe src=\"([\/\w\.\?\&\=]+autoPlay=true)", response.read())
+    m = re.findall(r"iframe src=\"([\/\w\.\?\&\=]+autoPlay=true)", response)
     url = main_url + m[0]
     response = urllib2.urlopen(url)
     url = re.findall(r"url\:\s\"([\/\w\d\-\.\:]+index.m3u8\?token1=[\w\-\d]+&token2=[\w\_\-\d]+&expire1=[\d]+&expire2=[\d]+)", response.read())
@@ -88,10 +118,15 @@ def livePlay():
     player.playF4mLink(url, "直播")
 
 
+def highlightPlay():
+    print "1"
+
 {
     'index': index,
     'replay': replay,
     'live': live,
+    'highlight': highlight,
     'replayPlay': replayPlay,
     'livePlay': livePlay,
+    'highlightPlay': highlightPlay,
 }[params.get('act', 'index')]()
