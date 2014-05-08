@@ -6,6 +6,7 @@ import xbmc, xbmcgui, xbmcplugin
 import sys
 import urlparse
 from F4mProxy import f4mProxyHelper
+#from bs4 import BeautifulSoup
 
 plugin_url = sys.argv[0]
 handle = int(sys.argv[1])
@@ -26,20 +27,20 @@ def index():
     xbmcplugin.endOfDirectory(handle)
 
 def live():
-    response = urllib2.urlopen("http://cpbltv.com")
+    response = urllib2.urlopen("http://cpbltv.com").read()
 
-    m = re.findall(r"live_channel_1", response.read())
+    m = re.findall(r"live_offline", response)
     if m:
-        url = plugin_url + "?act=livePlay&id=1"
-        li = xbmcgui.ListItem("live_channel_1")
+        dialog = xbmcgui.Dialog()
+        dialog.ok("提醒","現在非直播時段")
+        return
+ 
+    m = re.findall(r"live_channel_(\d)", response)
+    for i in m:
+        url = plugin_url + "?act=livePlay&id=" + i
+        li = xbmcgui.ListItem("live_channel_" + i)
+        li.setProperty('mimetype', 'video/x-msvideo')
         xbmcplugin.addDirectoryItem(handle, url, li, True)
-
-    m = re.findall(r"live_channel_2", response.read())
-    if m:
-        url = plugin_url + "?act=livePlay&id=2"
-        li = xbmcgui.ListItem("live_channel_2")
-        xbmcplugin.addDirectoryItem(handle, url, li, True)
-    
     xbmcplugin.endOfDirectory(handle)
 
 def replay():
