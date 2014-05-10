@@ -119,7 +119,22 @@ def livePlay():
 
 
 def highlightPlay():
-    print "1"
+    response = urllib2.urlopen(params['channel'])
+    if response:
+        response = response.read()
+    else:
+        return
+    main_url = "http://www.cpbltv.com"
+    m = re.findall(r"iframe src=\"([\/\w\.\?\&\=]+autoPlay=true)", response)
+    url = main_url + m[0]
+    response = urllib2.urlopen(url)
+    url = re.findall(r"url\:\s\"([\/\w\d\-\.\:]+index.m3u8\?token1=[\w\-\d]+&token2=[\w\_\-\d]+&expire1=[\d]+&expire2=[\d]+)", response.read())
+    url = str(url[0])
+    playlist = xbmc.PlayList( xbmc.PLAYLIST_VIDEO )
+    li = xbmcgui.ListItem(params['info'])
+    playlist.clear()
+    playlist.add(url=url, listitem=li)
+    xbmc.Player().play(playlist)
 
 {
     'index': index,
