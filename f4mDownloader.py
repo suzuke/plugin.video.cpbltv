@@ -1,4 +1,5 @@
 import xml.etree.ElementTree as etree
+#from lxml import etree
 import base64
 from struct import unpack, pack
 import sys
@@ -400,7 +401,7 @@ class F4MDownloader():
             man_url = self.url
             url=self.url
             print 'Downloading f4m manifest'
-            manifest = self.getUrl(man_url)#.read()
+            manifest = self.getUrl2(man_url)#.read()
             if not manifest:
                 return False
             try:
@@ -415,9 +416,10 @@ class F4MDownloader():
             except IndexError:
                 F4Mversion = "2.0"
             #print F4Mversion,_add_ns('media')
-            parser = etree.XMLParser()
+            #manifest = re.sub(u"[\x00-\x08\x0b-\x0c\x0e-\x1f-\x8b-\xb5]+",u"", manifest)
+            parser = etree.XMLParser(encoding='utf-8')
             doc = etree.fromstring(manifest, parser=parser)
-            #print doc
+            print doc
             try:
                 #formats = [(int(f.attrib.get('bitrate', -1)),f) for f in doc.findall(_add_ns('media'))]
                 formats=[]

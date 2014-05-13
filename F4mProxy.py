@@ -317,7 +317,8 @@ class f4mProxyHelper():
             #if not xbmc.Player().isPlaying():
             #    break
             xbmc.log('Sleeping...')
-            xbmc.sleep(200)
+            xbmc.sleep(1000)
+            time.sleep(1)
             #if firstTime:
             #    xbmc.executebuiltin('Dialog.Close(all,True)')
             #    firstTime=False
