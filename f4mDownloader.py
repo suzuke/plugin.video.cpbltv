@@ -415,7 +415,8 @@ class F4MDownloader():
             except IndexError:
                 F4Mversion = "2.0"
             #print F4Mversion,_add_ns('media')
-            doc = etree.fromstring(manifest)
+            parser = etree.XMLParser()
+            doc = etree.fromstring(manifest, parser=parser)
             #print doc
             try:
                 #formats = [(int(f.attrib.get('bitrate', -1)),f) for f in doc.findall(_add_ns('media'))]

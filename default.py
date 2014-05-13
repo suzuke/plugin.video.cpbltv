@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import urllib2
+import urllib, urllib2
 import re
 import xbmc, xbmcgui, xbmcplugin
 import sys
@@ -110,10 +110,16 @@ def replayPlay():
     xbmc.Player().play(playlist)
 
 def livePlay():
-    response = urllib2.urlopen("http://www.cpbltv.com/vod/player.html?&type=live&width=620&height=348&id="+params['id']+"&0.9397849941728333")
-    #url = "http://cpbl-hichannel.cdn.hinet.net/live/pool/cpbl-livestream03/hd-hds-pc/cpbl-livestream03.f4m?token1=lJ8EJPNtvlR5hh6kmuB1Hg&token2=tBVVO7VGJqzuDPHomlY3dA&expire1=1399396006&expire2=1399403206"    
-    m = re.findall(r"var play_url = '([\?\w\d\_\&\-\=]+)", response.read())
-    url = "http://cpbl-hichannel.cdn.hinet.net/live/pool/cpbl-livestream03/hd-hds-pc/cpbl-livestream03.f4m" + str(m[0])
+    data = { 'type':'live',
+             'id': params['id']}
+    req = urllib2.Request("http://www.cpbltv.com/vod/player.html?&type=live&width=620&height=348&id="+params['id']+"&0.9397849941728333", urllib.urlencode(data))
+    response = urllib2.urlopen(req)
+    #print response.read()
+    m = re.findall(r"var play_url = \'(.*?)\'", response.read())
+    #m = re.findall(r"var play_url = '([\?\w\d\_\&\-\=]+)", response.read())
+    #url = "http://cpbl-hichannel.cdn.hinet.net/live/pool/cpbl-livestream03/hd-hds-pc/cpbl-livestream03.f4m" + str(m[0])
+    url = str(m[0])
+    print url
     player = f4mProxyHelper()
     player.playF4mLink(url, "直播")
 
