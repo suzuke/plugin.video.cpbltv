@@ -1,5 +1,5 @@
-import xml.etree.ElementTree as etree
-#from lxml import etree
+#import xml.etree.ElementTree as etree
+from lxml import etree as letree
 import base64
 from struct import unpack, pack
 import sys
@@ -401,12 +401,12 @@ class F4MDownloader():
             man_url = self.url
             url=self.url
             print 'Downloading f4m manifest'
-            manifest = self.getUrl2(man_url)#.read()
+            manifest = self.getUrl(man_url)#.read()
             if not manifest:
                 return False
-            try:
-                print manifest
-            except: pass
+            #try:
+            #    print manifest
+            #except: pass
             self.status='manifest done'
             #self.report_destination(filename)
             #dl = ReallyQuietDownloader(self.ydl, {'continuedl': True, 'quiet': True, 'noprogress':True})
@@ -416,10 +416,10 @@ class F4MDownloader():
             except IndexError:
                 F4Mversion = "2.0"
             #print F4Mversion,_add_ns('media')
-            #manifest = re.sub(u"[\x00-\x08\x0b-\x0c\x0e-\x1f-\x8b-\xb5]+",u"", manifest)
-            parser = etree.XMLParser(encoding='utf-8')
-            doc = etree.fromstring(manifest, parser=parser)
-            print doc
+            parser = letree.XMLParser(recover=True)
+            doc = letree.fromstring(manifest, parser=parser)
+            if not doc:
+                print type(manifest)
             try:
                 #formats = [(int(f.attrib.get('bitrate', -1)),f) for f in doc.findall(_add_ns('media'))]
                 formats=[]
@@ -588,7 +588,7 @@ class F4MDownloader():
                 urlTry=0
                 while not success and urlTry<5:
                     success = self.getUrl(url,True)
-                    if not success: xbmc.sleep(300)
+                    if not success: xbmc.sleep(1000)
                     urlTry+=1
                 print 'downloaded',not success==None,url
                 if not success:
@@ -607,6 +607,7 @@ class F4MDownloader():
                         #    break
                             
                         if box_type == b'mdat':
+                            time.sleep(1)
                             dest_stream.write(box_data)
                             dest_stream.flush()
                             break
