@@ -10,6 +10,7 @@ from F4mProxy import f4mProxyHelper
 plugin_url = sys.argv[0]
 handle = int(sys.argv[1])
 params = dict(urlparse.parse_qsl(sys.argv[2].lstrip('?')))
+resolution_list = ['537813-640x360', '1067813-640x360', '2657813-1280x720', '3717813-1280x720']
 
 def index():
     # Live
@@ -34,8 +35,7 @@ def live():
 
     m = re.findall(r"live_offline", response)
     if m:
-        dialog = xbmcgui.Dialog()
-        dialog.ok("提醒","現在非直播時段")
+        xbmcgui.Dialog().ok("提醒","現在非直播時段")
         return
 
     m = re.findall(r"live_channel_(\d)", response)
@@ -92,6 +92,7 @@ def highlight():
 
 
 def replayPlay():
+    choice = xbmcgui.Dialog().select('選擇解析度', resolution_list)
     response = urllib2.urlopen(params['channel'])
     if response:
         response = response.read()
@@ -103,6 +104,9 @@ def replayPlay():
     response = urllib2.urlopen(url)
     url = re.findall(r"url\:\s\"([\/\w\d\-\.\:]+index.m3u8\?token1=[\w\-\d]+&token2=[\w\_\-\d]+&expire1=[\d]+&expire2=[\d]+)", response.read())
     url = str(url[0])
+    response = urllib2.urlopen(url)
+    resolution_urls = re.findall("([\w\-\=\_]+).m3u8\?token1=[\w\-\d]+&token2=[\w\_\-\d]+&expire1=[\d]+&expire2=[\d]+", response.read())
+    url = re.sub("index", resolution_urls[choice], url)
     playlist = xbmc.PlayList( xbmc.PLAYLIST_VIDEO )
     li = xbmcgui.ListItem(params['gameInfo'])
     playlist.clear()
@@ -125,6 +129,7 @@ def livePlay():
 
 
 def highlightPlay():
+    choice = xbmcgui.Dialog().select('選擇解析度', resolution_list)
     response = urllib2.urlopen(params['channel'])
     if response:
         response = response.read()
@@ -136,6 +141,9 @@ def highlightPlay():
     response = urllib2.urlopen(url)
     url = re.findall(r"url\:\s\"([\/\w\d\-\.\:]+index.m3u8\?token1=[\w\-\d]+&token2=[\w\_\-\d]+&expire1=[\d]+&expire2=[\d]+)", response.read())
     url = str(url[0])
+    response = urllib2.urlopen(url)
+    resolution_urls = re.findall("([\w\-\=\_]+).m3u8\?token1=[\w\-\d]+&token2=[\w\_\-\d]+&expire1=[\d]+&expire2=[\d]+", response.read())
+    url = re.sub("index", resolution_urls[choice], url)
     playlist = xbmc.PlayList( xbmc.PLAYLIST_VIDEO )
     li = xbmcgui.ListItem(params['info'])
     playlist.clear()
