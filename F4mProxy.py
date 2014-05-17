@@ -46,6 +46,7 @@ import xbmc
 import hashlib
 g_stopEvent=None
 g_downloader=None
+choice = 0
 
 class MyHandler(BaseHTTPRequestHandler):
     """
@@ -68,6 +69,7 @@ class MyHandler(BaseHTTPRequestHandler):
     def answer_request(self, sendData):
         global g_stopEvent
         global g_downloader
+        global choice
         try:
 
             #Pull apart request path
@@ -96,6 +98,7 @@ class MyHandler(BaseHTTPRequestHandler):
             
             if not downloader or downloader.live==True or  not (downloader.init_done and downloader.init_url ==url):
                 downloader=F4MDownloader()
+                downloader.resolution = choice
                 if not downloader.init(self.wfile,url,proxy,use_proxy_for_chunks,g_stopEvent,maxbitrate):
                     print 'cannot init'
                     return
@@ -168,7 +171,7 @@ class MyHandler(BaseHTTPRequestHandler):
                 print 'srange,framgementToSend',srange,framgementToSend
                 #runningthread=thread.start_new_thread(downloader.keep_sending_video,(self.wfile,srange,framgementToSend,))
                 
-                xbmc.sleep(500)
+                xbmc.sleep(1000)
                 while not downloader.status=="finished":
                     xbmc.sleep(200);
 
@@ -256,7 +259,6 @@ class Server(HTTPServer):
  
 class ThreadedHTTPServer(ThreadingMixIn, Server):
     """Handle requests in a separate thread."""
- 
 HOST_NAME = '127.0.0.1'
 PORT_NUMBER = 64649
 
@@ -266,14 +268,16 @@ class f4mProxy():
         global PORT_NUMBER
         global HOST_NAME
         global g_stopEvent
+        global choice 
         print 'port',port,'HOST_NAME',HOST_NAME
         g_stopEvent = stopEvent
         socket.setdefaulttimeout(10)
+        #socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         server_class = ThreadedHTTPServer
-        #MyHandler.protocol_version = "HTTP/1.1"
         MyHandler.protocol_version = "HTTP/1.1"
+        MyHandler.choice = choice
+        server_class.allow_reuse_address = True
         httpd = server_class((HOST_NAME, port), MyHandler)
-        
         print "XBMCLocalProxy Starts - %s:%s" % (HOST_NAME, port)
         while(True and not stopEvent.isSet()):
             httpd.handle_request()
@@ -288,13 +292,14 @@ class f4mProxy():
 
 class f4mProxyHelper():
 
-    def playF4mLink(self,url,name,proxy=None,use_proxy_for_chunks=False, maxbitrate=0):
+    def playF4mLink(self,url,name,proxy=None,use_proxy_for_chunks=False, maxbitrate=0, resolution=0):
+        global choice
         print "URL: " + url
         stopPlaying=threading.Event()
         progress = xbmcgui.DialogProgress()
         listitem = xbmcgui.ListItem(name)
         listitem.setInfo('video', {'Title': name})
-        
+        choice = resolution 
         f4m_proxy=f4mProxy()
         stopPlaying.clear()
         runningthread=thread.start_new_thread(f4m_proxy.start,(stopPlaying,))
@@ -331,6 +336,8 @@ class f4mProxyHelper():
         print "URL: " + url
         stopPlaying=threading.Event()
         f4m_proxy=f4mProxy()
+        print "I use thos!!!!!!!!"
+        print self.resolution
         stopPlaying.clear()
         runningthread=thread.start_new_thread(f4m_proxy.start,(stopPlaying,))
         stream_delay = 1

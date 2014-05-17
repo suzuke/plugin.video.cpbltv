@@ -1,5 +1,5 @@
-#import xml.etree.ElementTree as etree
-from lxml import etree as letree
+import xml.etree.ElementTree as etree
+#from lxml import etree as letree
 import base64
 from struct import unpack, pack
 import sys
@@ -24,6 +24,7 @@ __addonname__   = selfAddon.getAddonInfo('name')
 __icon__        = selfAddon.getAddonInfo('icon')
 downloadPath   = xbmc.translatePath(selfAddon.getAddonInfo('profile'))#selfAddon["profile"])
 F4Mversion=''
+
 class FlvReader(io.BytesIO):
     """
     Reader for Flv files
@@ -294,10 +295,10 @@ class F4MDownloader():
     """
     outputfile =''
     clientHeader=None
-
+    resolution = 0
     def __init__(self):
         self.init_done=False
-   
+
     def getUrl(self,url, ischunkDownloading=False):
         try:
             post=None
@@ -334,6 +335,7 @@ class F4MDownloader():
         if response:
             return response.read()
         else:
+            print "No downalod get!!!"
             return None
          
     def _write_flv_header2(self, stream):
@@ -401,12 +403,58 @@ class F4MDownloader():
             man_url = self.url
             url=self.url
             print 'Downloading f4m manifest'
-            manifest = self.getUrl(man_url)#.read()
-            if not manifest:
-                return False
-            #try:
-            #    print manifest
-            #except: pass
+            #manifest = self.getUrl2(man_url)#.read()
+            #manifest = open("cpbl-livestream03.f4m", "r").read()
+            manifest = '<?xml version="1.0" encoding="utf-8"?>\
+<manifest\
+  xmlns="http://ns.adobe.com/f4m/2.0">\
+  <id>cpbl-livestream03</id>\
+  <startTime>2014-04-29T09:13:59Z</startTime>\
+  <duration>0</duration>\
+  <mimeType>video/mp4</mimeType>\
+  <streamType>live</streamType>\
+  <deliveryType>streaming</deliveryType>\
+  <bootstrapInfo\
+    id="boot-cpbl-livestream03-audio101=96000-video=500000"\
+    profile="named"\
+    url="cpbl-livestream03-audio101=96000-video=500000.bootstrap" />\
+  <bootstrapInfo\
+    id="boot-cpbl-livestream03-audio101=96000-video=1000000"\
+    profile="named"\
+    url="cpbl-livestream03-audio101=96000-video=1000000.bootstrap" />\
+  <bootstrapInfo\
+    id="boot-cpbl-livestream03-audio101=96000-video=1500000"\
+    profile="named"\
+    url="cpbl-livestream03-audio101=96000-video=1500000.bootstrap" />\
+  <bootstrapInfo\
+    id="boot-cpbl-livestream03-audio101=96000-video=2500000"\
+    profile="named"\
+    url="cpbl-livestream03-audio101=96000-video=2500000.bootstrap" />\
+  <media\
+    url="cpbl-livestream03-audio101=96000-video=500000-"\
+    bitrate="596"\
+    bootstrapInfoId="boot-cpbl-livestream03-audio101=96000-video=500000"\
+    width="640"\
+    height="360" />\
+  <media\
+    url="cpbl-livestream03-audio101=96000-video=1000000-"\
+    bitrate="1096"\
+    bootstrapInfoId="boot-cpbl-livestream03-audio101=96000-video=1000000"\
+    width="640"\
+    height="360" />\
+  <media\
+    url="cpbl-livestream03-audio101=96000-video=1500000-"\
+    bitrate="1596"\
+    bootstrapInfoId="boot-cpbl-livestream03-audio101=96000-video=1500000"\
+    width="854"\
+    height="480" />\
+  <media\
+    url="cpbl-livestream03-audio101=96000-video=2500000-"\
+    bitrate="2596"\
+    bootstrapInfoId="boot-cpbl-livestream03-audio101=96000-video=2500000"\
+    width="960"\
+    height="540" />\
+</manifest>'
             self.status='manifest done'
             #self.report_destination(filename)
             #dl = ReallyQuietDownloader(self.ydl, {'continuedl': True, 'quiet': True, 'noprogress':True})
@@ -415,11 +463,8 @@ class F4MDownloader():
                 F4Mversion =re.findall(version_fine, manifest)[0]
             except IndexError:
                 F4Mversion = "2.0"
-            #print F4Mversion,_add_ns('media')
-            parser = letree.XMLParser(recover=True)
-            doc = letree.fromstring(manifest, parser=parser)
-            if not doc:
-                print type(manifest)
+            parser = etree.XMLParser()
+            doc = etree.fromstring(manifest)
             try:
                 #formats = [(int(f.attrib.get('bitrate', -1)),f) for f in doc.findall(_add_ns('media'))]
                 formats=[]
@@ -431,7 +476,6 @@ class F4MDownloader():
             except:
                 formats=[(int(0),f) for f in doc.findall(_add_ns('media'))]
             #print 'formats',formats
-            
             
             formats = sorted(formats, key=lambda f: f[0])
             if self.maxbitrate==0:
@@ -583,6 +627,8 @@ class F4MDownloader():
                 #print(url),base_url,name
                 #frag_filename = u'%s-%s' % (tmpfilename, name)
                 #success = dl._do_download(frag_filename, {'url': url})
+                resolutions_dict = {0:"500000", 1:"1000000", 2:"1500000", 3:"2500000"}
+                url = re.sub("2500000", resolutions_dict[self.resolution], url)
                 print 'downloading....',url
                 success=False
                 urlTry=0
@@ -654,7 +700,6 @@ class F4MDownloader():
         return None
     
     def readBootStrapInfo(self,bootstrapUrl,bootStrapData, updateMode=False, lastFragement=None,lastSegment=None):
-
         try:
             retries=0
             while retries<=10:

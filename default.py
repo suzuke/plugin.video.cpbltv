@@ -10,7 +10,7 @@ from F4mProxy import f4mProxyHelper
 plugin_url = sys.argv[0]
 handle = int(sys.argv[1])
 params = dict(urlparse.parse_qsl(sys.argv[2].lstrip('?')))
-resolution_list = ['537813-640x360', '1067813-640x360', '2657813-1280x720', '3717813-1280x720']
+resolution_list = ['512 kbps-640x360', '1 Mbps-640x360', '2.4 Mbps-1280x720', '3.6 Mbps-1280x720']
 
 def index():
     # Live
@@ -114,6 +114,7 @@ def replayPlay():
     xbmc.Player().play(playlist)
 
 def livePlay():
+    choice = xbmcgui.Dialog().select('選擇解析度', resolution_list)
     data = { 'type':'live',
              'id': params['id']}
     req = urllib2.Request("http://www.cpbltv.com/vod/player.html?&type=live&width=620&height=348&id="+params['id']+"&0.9397849941728333", urllib.urlencode(data))
@@ -121,11 +122,9 @@ def livePlay():
     #print response.read()
     m = re.findall(r"var play_url = \'(.*?)\'", response.read())
     #m = re.findall(r"var play_url = '([\?\w\d\_\&\-\=]+)", response.read())
-    #url = "http://cpbl-hichannel.cdn.hinet.net/live/pool/cpbl-livestream03/hd-hds-pc/cpbl-livestream03.f4m" + str(m[0])
     url = str(m[0])
-    print url
     player = f4mProxyHelper()
-    player.playF4mLink(url, "直播")
+    player.playF4mLink(url, name="直播", resolution=choice)
 
 
 def highlightPlay():
