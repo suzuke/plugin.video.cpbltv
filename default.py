@@ -16,17 +16,17 @@ resolution_list = ['512 kbps-640x360', '1 Mbps-640x360', '2.4 Mbps-1280x720', '3
 def index():
     # Live
     url = plugin_url + "?act=live"
-    li = xbmcgui.ListItem("直播")
+    li = xbmcgui.ListItem("影音直播(LIVE)")
     xbmcplugin.addDirectoryItem(handle, url, li, True)
 
     # Replay
     url = plugin_url + "?act=replay&offset=1"
-    li = xbmcgui.ListItem("重播")
+    li = xbmcgui.ListItem("完整賽事(REPLAY)")
     xbmcplugin.addDirectoryItem(handle, url, li, True)
 
     # Highlight
     url = plugin_url + "?act=highlight&offset=1"
-    li = xbmcgui.ListItem("精彩片段")
+    li = xbmcgui.ListItem("精彩短片(HIGHLIGHT)")
     xbmcplugin.addDirectoryItem(handle, url, li, True)
 
     xbmcplugin.endOfDirectory(handle)
