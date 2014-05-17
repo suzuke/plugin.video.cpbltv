@@ -6,6 +6,7 @@ import xbmc, xbmcgui, xbmcplugin
 import sys
 import urlparse
 from F4mProxy import f4mProxyHelper
+import json
 
 plugin_url = sys.argv[0]
 handle = int(sys.argv[1])
@@ -32,17 +33,20 @@ def index():
 
 def live():
     response = urllib2.urlopen("http://cpbltv.com").read()
+    
+    m = re.findall(r"<div id=\"cache_channel_\d\" style=\"[\w\:]+;\" >({.*?})", response)
 
-    m = re.findall(r"live_offline", response)
-    if m:
-        xbmcgui.Dialog().ok("提醒","現在非直播時段")
-        return
-
-    m = re.findall(r"live_channel_(\d)", response)
     for i in m:
-        url = plugin_url + "?act=livePlay&id=" + i
-        li = xbmcgui.ListItem("live_channel_" + i)
-        li.setProperty('mimetype', 'video/x-msvideo')
+        json_dict = json.loads(i)
+        time = json_dict['time']
+        guest_name = json_dict['guest_name']
+        host_name = json_dict['host_name']
+        #double_game = json_dict['double_game']
+        fieldsubname = json_dict['fieldsubname']
+        channel_id = json_dict['channel_id']
+
+        url = plugin_url + "?act=livePlay&id=" + str(channel_id)
+        li = xbmcgui.ListItem(fieldsubname + " " + host_name + " VS " + guest_name + " " + time)
         xbmcplugin.addDirectoryItem(handle, url, li, True)
     xbmcplugin.endOfDirectory(handle)
 
@@ -53,7 +57,7 @@ def replay():
     else:
         return
 
-    channels = re.findall(r"top.location.href=\'([\w\.\/\:\=\?]+)\';\">[0-9]+&nbsp;([\x01-\xff]{6}\sVS\s[\x01-\xff]{6})\s([\d]{4}\/[\d]{2}\/[\d]{2})", response)
+    channels = re.findall(r"top.location.href=\'([\w\.\/\:\=\?]+)\';\">[0-9]+&nbsp;([\x01-\xff]{6}\sVS\s[\x01-\xff]{6})\s([\d]{4}\/[\d]{2}\/[\d]{2}.*?)\<br\>", response)
     #channels = re.findall(r"<a href=\"([\w\.\/\:\=\?]+)\">\d+&nbsp;([\x01-\xff]{6}\sVS\s[\x01-\xff]{6})\s([\d]{4}\/[\d]{2}\/[\d]{2})", response.read())
     for channel in channels:
         gameInfo = " ".join(channel[1:])
@@ -114,6 +118,12 @@ def replayPlay():
     xbmc.Player().play(playlist)
 
 def livePlay():
+    response = urllib2.urlopen("http://www.cpbltv.com/channel/" + params['id'] + ".html").read()
+    m = re.findall(r"live_offline", response)
+    if m:
+        xbmcgui.Dialog().ok("提醒","現在非直播時段")
+        return
+
     choice = xbmcgui.Dialog().select('選擇解析度', resolution_list)
     data = { 'type':'live',
              'id': params['id']}
