@@ -259,7 +259,10 @@ class Server(HTTPServer):
  
 class ThreadedHTTPServer(ThreadingMixIn, Server):
     """Handle requests in a separate thread."""
-HOST_NAME = '127.0.0.1'
+#HOST_NAME = '127.0.0.1'
+s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+s.connect(('google.com', 0))
+HOST_NAME = s.getsockname()[0]
 PORT_NUMBER = 64649
 
 class f4mProxy():
