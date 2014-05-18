@@ -402,6 +402,7 @@ class F4MDownloader():
             self.live=False #todo find if its Live or not
             man_url = self.url
             url=self.url
+            m = re.findall(r"(cpbl-livestream[\d]{2})", url)
             print 'Downloading f4m manifest'
             #manifest = self.getUrl2(man_url)#.read()
             #manifest = open("cpbl-livestream03.f4m", "r").read()
@@ -455,6 +456,7 @@ class F4MDownloader():
     width="960"\
     height="540" />\
 </manifest>'
+            manifest = re.sub("cpbl-livestream03", m[0], manifest)
             self.status='manifest done'
             #self.report_destination(filename)
             #dl = ReallyQuietDownloader(self.ydl, {'continuedl': True, 'quiet': True, 'noprogress':True})
