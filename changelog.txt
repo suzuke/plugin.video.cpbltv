@@ -10,3 +10,7 @@
 # - add Replay channel
 # - add Highlight channel
 ########################################################################
+# Version 1.0.1 2014-05-21
+# - Fixed replay url change problem
+# - add rain delay detect & remind
+########################################################################

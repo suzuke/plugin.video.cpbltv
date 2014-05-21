@@ -12,6 +12,7 @@ plugin_url = sys.argv[0]
 handle = int(sys.argv[1])
 params = dict(urlparse.parse_qsl(sys.argv[2].lstrip('?')))
 resolution_list = ['512 kbps-640x360', '1 Mbps-640x360', '2.4 Mbps-1280x720', '3.6 Mbps-1280x720']
+live_resolution_list = ['596 bps-640x360', '1096 bps-640x360', '1596 bps-854x480', '2596 bps-960x540']
 
 def index():
     # Live
@@ -44,6 +45,11 @@ def live():
         #double_game = json_dict['double_game']
         fieldsubname = json_dict['fieldsubname']
         channel_id = json_dict['channel_id']
+        live_img = json_dict['live_img']
+
+        if live_img == "c_rain.png":
+            channel_id = 99 # rain
+            time += " (因雨延賽)"
 
         url = plugin_url + "?act=livePlay&id=" + str(channel_id)
         li = xbmcgui.ListItem(fieldsubname + " " + host_name + " VS " + guest_name + " " + time)
@@ -97,7 +103,7 @@ def highlight():
 
 def replayPlay():
     choice = xbmcgui.Dialog().select('選擇解析度', resolution_list)
-    response = urllib2.urlopen(params['channel'])
+    response = urllib2.urlopen("http://cpbltv.com" + params['channel'])
     if response:
         response = response.read()
     else:
@@ -118,13 +124,17 @@ def replayPlay():
     xbmc.Player().play(playlist)
 
 def livePlay():
+    if params['id'] == "99":
+        xbmcgui.Dialog().ok("提醒","因雨延賽")
+        return
+
     response = urllib2.urlopen("http://www.cpbltv.com/channel/" + params['id'] + ".html").read()
     m = re.findall(r"live_offline", response)
     if m:
         xbmcgui.Dialog().ok("提醒","現在非直播時段")
         return
-
-    choice = xbmcgui.Dialog().select('選擇解析度', resolution_list)
+    
+    choice = xbmcgui.Dialog().select('選擇解析度', live_resolution_list)
     data = { 'type':'live',
              'id': params['id']}
     req = urllib2.Request("http://www.cpbltv.com/vod/player.html?&type=live&width=620&height=348&id="+params['id']+"&0.9397849941728333", urllib.urlencode(data))
