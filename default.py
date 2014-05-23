@@ -49,7 +49,7 @@ def live():
 
         if live_img == "c_rain.png":
             channel_id = 99 # rain
-            time += " (因雨延賽)"
+            time += u" (因雨延賽)"
 
         url = plugin_url + "?act=livePlay&id=" + str(channel_id)
         li = xbmcgui.ListItem(fieldsubname + " " + host_name + " VS " + guest_name + " " + time)
