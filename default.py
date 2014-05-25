@@ -46,13 +46,19 @@ def live():
         fieldsubname = json_dict['fieldsubname']
         channel_id = json_dict['channel_id']
         live_img = json_dict['live_img']
+        url = json_dict['url']
+        status = ''
 
         if live_img == "c_rain.png":
-            channel_id = 99 # rain
-            time += u" (因雨延賽)"
+            channel_id = 'rain'
+            status = u" (因雨延賽)"
 
-        url = plugin_url + "?act=livePlay&id=" + str(channel_id)
-        li = xbmcgui.ListItem(fieldsubname + " " + host_name + " VS " + guest_name + " " + time)
+        if live_img == "c_final.png":
+            channel_id = 'final'
+            status = u" (結束)"
+
+        url = plugin_url + "?act=livePlay&id=" + str(channel_id) + "&url=" + str(url)
+        li = xbmcgui.ListItem(fieldsubname + " " + host_name + " VS " + guest_name + " " + time + status)
         xbmcplugin.addDirectoryItem(handle, url, li, True)
     xbmcplugin.endOfDirectory(handle)
 
@@ -88,7 +94,11 @@ def highlight():
 
     channels = re.findall(r"href=\'(.*?)\';\">\d+\&nbsp;(.*?)<br>", response)
     for channel in channels:
-        url = plugin_url + "?act=highlightPlay&channel=" + channel[0] + "&info=" + channel[1]
+        if 'cpbltv.com' not in channel[0]:
+            channel_url = "http://cpbltv.com" + str(channel[0])
+        else:
+            channel_url = str(channel[0])
+        url = plugin_url + "?act=highlightPlay&channel=" + channel_url + "&info=" + channel[1]
         li = xbmcgui.ListItem(channel[1])
         li.setProperty('mimetype', 'video/x-msvideo')
         xbmcplugin.addDirectoryItem(handle, url, li, True)
@@ -124,11 +134,16 @@ def replayPlay():
     xbmc.Player().play(playlist)
 
 def livePlay():
-    if params['id'] == "99":
+    if params['id'] == "rain":
         xbmcgui.Dialog().ok("提醒","因雨延賽")
         return
+    
+    if params['id'] == 'final':
+        xbmcgui.Dialog().ok("提醒","比賽已經結束")
+        return
 
-    response = urllib2.urlopen("http://www.cpbltv.com/channel/" + params['id'] + ".html").read()
+    #response = urllib2.urlopen("http://www.cpbltv.com/channel/" + params['id'] + ".html").read()
+    response = urllib2.urlopen("http://www.cpbltv.com/channel/" + params['url']).read()
     m = re.findall(r"live_offline", response)
     if m:
         xbmcgui.Dialog().ok("提醒","現在非直播時段")

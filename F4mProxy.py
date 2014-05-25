@@ -33,7 +33,6 @@ from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
 from urllib import *
 import urlparse
 from f4mDownloader import F4MDownloader
-import xbmc
 import thread
 import zlib
 from StringIO import StringIO

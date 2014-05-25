@@ -403,7 +403,7 @@ class F4MDownloader():
             man_url = self.url
             url=self.url
             m = re.findall(r"(cpbl-livestream[\d]{2})", url)
-            print 'Downloading f4m manifest'
+            #print 'Downloading f4m manifest'
             #manifest = self.getUrl2(man_url)#.read()
             #manifest = open("cpbl-livestream03.f4m", "r").read()
             manifest = '<?xml version="1.0" encoding="utf-8"?>\
@@ -631,7 +631,8 @@ class F4MDownloader():
                 #success = dl._do_download(frag_filename, {'url': url})
                 resolutions_dict = {0:"500000", 1:"1000000", 2:"1500000", 3:"2500000"}
                 url = re.sub("2500000", resolutions_dict[self.resolution], url)
-                print 'downloading....',url
+                #print 'downloading....',url
+                time.sleep(0.1)
                 success=False
                 urlTry=0
                 while not success and urlTry<5:
