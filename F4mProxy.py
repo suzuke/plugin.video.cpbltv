@@ -338,8 +338,6 @@ class f4mProxyHelper():
         print "URL: " + url
         stopPlaying=threading.Event()
         f4m_proxy=f4mProxy()
-        print "I use thos!!!!!!!!"
-        print self.resolution
         stopPlaying.clear()
         runningthread=thread.start_new_thread(f4m_proxy.start,(stopPlaying,))
         stream_delay = 1

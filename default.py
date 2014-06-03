@@ -47,6 +47,7 @@ def live():
         channel_id = json_dict['channel_id']
         live_img = json_dict['live_img']
         url = json_dict['url']
+        gamedate = json_dict['gamedate']
         status = ''
 
         if live_img == "c_rain.png":
@@ -58,7 +59,7 @@ def live():
             status = u" (結束)"
 
         url = plugin_url + "?act=livePlay&id=" + str(channel_id) + "&url=" + str(url)
-        li = xbmcgui.ListItem(fieldsubname + " " + host_name + " VS " + guest_name + " " + time + status)
+        li = xbmcgui.ListItem(" ".join((gamedate, fieldsubname, host_name, "VS", guest_name, time, status)))
         xbmcplugin.addDirectoryItem(handle, url, li, True)
     xbmcplugin.endOfDirectory(handle)
 
